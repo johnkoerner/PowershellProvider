@@ -34,5 +34,10 @@ namespace PowerShellProvider
         {
             return true;
         }
+
+        protected override void GetChildItems(string path, bool recurse)
+        {
+            WriteItemObject("Hello", "Hello", true);
+        }
     }
 }
