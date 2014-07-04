@@ -37,7 +37,14 @@ namespace PowerShellProvider
 
         protected override void GetChildItems(string path, bool recurse)
         {
-            WriteItemObject("Hello", "Hello", true);
+
+            var stackOverflow = new StackOverflowAPI.StackOverflow();
+            var tags = stackOverflow.GetTags().Result;
+
+            foreach (var tag in tags)
+            {
+                WriteItemObject(tag, tag.name,true);
+            }
         }
     }
 }
