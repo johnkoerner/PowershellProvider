@@ -1,1 +1,1 @@
-﻿Import-Module .\PowerShellProvider.dll
+﻿Import-Module .\MyPowerShellProvider.psd1
