@@ -1,9 +1,9 @@
 ﻿<Configuration>
   <ViewDefinitions>
     <View>
-      <Name>MyView</Name>
+      <Name>TagView</Name>
       <ViewSelectedBy>
-        <TypeName>StackOverflowAPI.Tag</TypeName>
+        <TypeName>StackExchange.StacMan.Tag</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -26,6 +26,46 @@
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Count</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <View>
+      <Name>QuestionView</Name>
+      <ViewSelectedBy>
+        <TypeName>StackExchange.StacMan.Question</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Title</Label>
+            <Width>70</Width>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Creator</Label>
+            <Width>20</Width>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Reputation</Label>
+            <Width>10</Width>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Title</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.Owner.DisplayName</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.Owner.Reputation</ScriptBlock>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>

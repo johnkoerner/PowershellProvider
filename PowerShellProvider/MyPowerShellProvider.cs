@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.StacMan;
 
 namespace PowerShellProvider
 {
@@ -20,7 +23,7 @@ namespace PowerShellProvider
 
         protected override Collection<PSDriveInfo> InitializeDefaultDrives()
         {
-            PSDriveInfo drive = new PSDriveInfo("MyDrive", this.ProviderInfo, "", "", null);
+            PSDriveInfo drive = new PSDriveInfo("SO", this.ProviderInfo, "", "", null);
             Collection<PSDriveInfo> drives = new Collection<PSDriveInfo>() {drive};
             return drives;
         }
@@ -30,20 +33,64 @@ namespace PowerShellProvider
             return true;
         }
 
+        private static StacManResponse<Tag> tags;
+        private void LoadTags(bool forceReload=false)
+        {
+            if (tags == null || forceReload)
+            {
+                var stackOverflow = new StacManClient();
+                tags = stackOverflow.Tags.GetAll("stackoverflow.com").Result;
+            }
+        }
+
         protected override bool IsItemContainer(string path)
         {
-            return true;
+            // The path is empty, so we are at the root.  The root is always valid for us.
+            if (String.IsNullOrEmpty(path))
+                return true;
+
+            LoadTags();
+
+
+            if (tags.Data == null)
+                return false;
+
+            if (tags.Data.Items == null)
+                return false;
+
+            var itemFromTag = from tag in tags.Data.Items
+                where tag.Name.Equals(path, StringComparison.CurrentCultureIgnoreCase)
+                select tag;
+
+            return itemFromTag.Any();
+            
         }
+
 
         protected override void GetChildItems(string path, bool recurse)
         {
-
-            var stackOverflow = new StackOverflowAPI.StackOverflow();
-            var tags = stackOverflow.GetTags().Result;
-
-            foreach (var tag in tags)
+            if (string.IsNullOrEmpty(path))
             {
-                WriteItemObject(tag, tag.name,true);
+                // Write the tags
+                LoadTags();
+
+                foreach (var tag in tags.Data.Items)
+                {
+                    WriteItemObject(tag, tag.Name, false);
+                }
+            }
+            else
+            {
+                // Write the questions for this tag
+                var stackOverflow = new StacManClient();
+                var questions = stackOverflow.Questions.GetAll("stackoverflow.com", tagged:path);
+
+                foreach (var q in questions.Result.Data.Items)
+                {
+                    Debug.WriteLine(q.Owner.Reputation);
+                    
+                    WriteItemObject(q, q.Title, false);
+                }
             }
         }
     }
