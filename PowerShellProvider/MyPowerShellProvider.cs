@@ -7,12 +7,13 @@ using System.Management.Automation;
 using System.Management.Automation.Provider;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using StackExchange.StacMan;
 
 namespace PowerShellProvider
 {
-    [CmdletProvider("MyPowerShellProvider", ProviderCapabilities.None)]
+    [CmdletProvider("MyPowerShellProvider", ProviderCapabilities.ExpandWildcards)]
     public class MyPowerShellProvider : NavigationCmdletProvider
     {
 
@@ -30,8 +31,48 @@ namespace PowerShellProvider
 
         protected override bool ItemExists(string path)
         {
-            return true;
+            if (tags == null)
+                return true;
+
+            if (String.IsNullOrEmpty(path))
+                return true;
+
+            var itemFromTag = from tag in tags.Data.Items
+                              where tag.Name.Equals(path, StringComparison.CurrentCultureIgnoreCase)
+                              select tag;
+
+            return itemFromTag.Any();
+            
         }
+
+        private string[] TagsFromPath(string path)
+        {
+            if (tags == null)
+                return null;
+
+
+
+            var regexString = Regex.Escape(path).Replace("\\*", ".*");
+            regexString = "^" + regexString + "$";
+            var regex = new Regex(regexString);
+
+            var itemFromTag = from tag in tags.Data.Items
+                              where regex.IsMatch(tag.Name)
+                              select tag.Name;
+
+            if (itemFromTag.Any())
+                return itemFromTag.ToArray();
+
+            return null;
+        }
+
+
+        protected override string[] ExpandPath(string path)
+        {
+            return TagsFromPath(path);
+        }
+
+
 
         private static StacManResponse<Tag> tags;
         private void LoadTags(bool forceReload=false)
